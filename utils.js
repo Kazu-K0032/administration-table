@@ -36,7 +36,7 @@ function getColumnNumber(titleValues, setting_title) {
  * @param {Array.<number>} setting_title - カラム数を返したいタイトルにあたる正規表現
  * @param {Array.<Object>} - [{"title": "出力したいタイトル名", "column": "出力したいタイトルのカラム数"}]
  */
-function preg_getColumnNumber(titleValues, setting_title) {
+function getColumnNumberWithRegex(titleValues, setting_title) {
   const result = [];
   for (let i = 0; i < setting_title.length; i++) {
     const preg_targetTitle = setting_title[i];
@@ -99,6 +99,10 @@ function convertStr(values) {
   return nextValues
 }
 
+/**
+ * 実行するかどうかを確認する関数
+ * @returns {boolean} - 実行するかどうか
+ */
 function confirmAndExecute() {
   const ui = SpreadsheetApp.getUi();
   const response = ui.alert('本当に実行しますか？', ui.ButtonSet.YES_NO);
@@ -115,7 +119,6 @@ function confirmAndExecute() {
  * @param {number} e - 列番号
  * @return {String} - 列タイトル
  */
-function convert_fromNum_toAlpha(e) {
-  const convertList = ["A", "B", "C", "D", "E", "F", "G", "H", "I"];
-  return convertList[e - 1] || null;
+function convertFromNumToAlpha(e) {
+  return CONSTANTS.ALPHABET_COLUMNS[e - 1] || null;
 }

@@ -2,11 +2,11 @@
  * トリガー有：毎週月曜日７時～８時
  * 『やることリスト（毎月）』シートの達成されていないものを通知する関数
  */
-function alert_Pending_Tasks() {
-  const sheet = getSheet("やることリスト（毎月）");
+function notificationUncompletedTasks() {
+  const sheet = getSheet(SHEET_NAMES.MONTHLY_TASK_LIST);
   const titleValues = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues().flat()
-  let setting_title = [/内容（/, /進捗/]
-  setting_title = preg_getColumnNumber(titleValues, setting_title)
+  let setting_title = [REGEX_PATTERNS.CONTENT_WITH_PERCENT, REGEX_PATTERNS.PROGRESS]
+  setting_title = getColumnNumberWithRegex(titleValues, setting_title)
 
   /**
    * 	[ { title: '内容（75.93％）', column: 3 },   { title: '進捗', column: 4 } ]
@@ -16,7 +16,7 @@ function alert_Pending_Tasks() {
   let message = ""
   let rest_counter = 0
 
-  // 『進捗』列を参照し、１００％以外の行があれば『内容』列の値を設置する
+  // 『進捗』列を参照し、100％以外の行があれば『内容』列の値を設置する
   for (let i = 0; i < values_content.length; i++) {
     const content = values_content[i]
     const percent = values_percent[i]
@@ -32,21 +32,34 @@ function alert_Pending_Tasks() {
   const header = `↓↓↓ 今月残っているタスク（${rest_counter}個） ↓↓↓`;
   message = "\n" + header + "\n" + message;
   console.log("LINE本文（message）", message)
-  send_LINE(message) // LINEに通知
+  send2Line(message) // LINEに通知
 }
 
 /**
  * LINEに通知する関数
  * @param {string} body - 通知する本文内容
  */
-function send_LINE(body) {
-  const token = 'LINE_API_TOKEN';
-  const lineNotifyApi = 'https://notify-api.line.me/api/notify';
-  const options = {
-    "method": "post",
-    "payload": { "message": body },
-    "headers": { "Authorization": "Bearer " + token }
+function send2Line(body) {
+  const props = PropertiesService.getScriptProperties();
+  const token = props.getProperty(LINE_CONFIG.TOKEN_PROPERTY);
+
+  const payload = {
+    messages: [
+      { type: 'text', text: body }
+    ]
   };
 
-  UrlFetchApp.fetch(lineNotifyApi, options);
+  const options = {
+    method: "post",
+    contentType: "application/json",
+    payload: JSON.stringify(payload),
+    headers: { Authorization: "Bearer " + token },
+    muteHttpExceptions: true
+  };
+
+  const response = UrlFetchApp.fetch(LINE_CONFIG.ENDPOINT, options);
+  const code = response.getResponseCode();
+  if (code < 200 || code >= 300) {
+    console.error(MESSAGES.LINE_BROADCAST_FAILED, code, response.getContentText());
+  }
 }
