@@ -1,13 +1,17 @@
 # Administration-Table
 
-Google Apps Scriptを使用した管理テーブル自動化プロジェクトです。スプレッドシートの「やることリスト」を管理し、LINE Notifyによる通知機能を提供します。
+[English](./docs/lang/en.md) | 日本語
+
+Google Apps Scriptを使用した管理テーブル自動化プロジェクトです。
+
+スプレッドシートの「やることリスト」を管理し、LINE Messaging APIによる通知機能を提供します。
 
 ## 📋 プロジェクト概要
 
 このプロジェクトは以下の機能を提供します：
 
 - **やることリスト管理**: 月次のタスク進捗を追跡
-- **自動通知**: 未完了タスクの週次通知（LINE Notify）
+- **自動通知**: 未完了タスクの週次通知（LINE Messaging API）
 - **進捗計算**: タスクの平均進捗率を自動計算
 - **リセット機能**: 月次タスクの進捗をリセット
 - **編集履歴**: スプレッドシートの変更履歴を記録
@@ -18,7 +22,7 @@ Google Apps Scriptを使用した管理テーブル自動化プロジェクト�
 
 - Node.js (v14以上)
 - Googleアカウント
-- LINE Notifyアカウント（通知機能を使用する場合）
+- LINE Messaging APIアカウント（通知機能を使用する場合）
 
 ### 1. リポジトリのクローン
 
@@ -57,15 +61,10 @@ npx clasp login
 }
 ```
 
-### 6. LINE Notifyトークンの設定
+### 6. LINE Messaging APIトークンの設定
 
-1. [LINE Notify](https://notify-bot.line.me/)でトークンを生成
-2. `notification.js`の`LINE_API_TOKEN`を実際のトークンに置き換え
-
-```javascript
-// notification.js の43行目
-const token = 'YOUR_LINE_NOTIFY_TOKEN';
-```
+1. [LINE Developers Console](https://developers.line.biz/)でチャンネルアクセストークンを生成
+2. Google Apps Scriptのプロパティサービスにトークンを設定
 
 ### 7. プロジェクトのデプロイ
 
@@ -77,13 +76,14 @@ npx clasp push
 
 ```markdown
 administration-table/
-├── appsscript.json          # Apps Script設定
+├── appsscript.json         # Apps Script設定
 ├── changeAverage.js        # 進捗率計算機能
-├── menu.js                  # カスタムメニュー
-├── notification.js          # LINE通知機能
+├── constants.js            # 定数管理
+├── menu.js                 # カスタムメニュー
+├── notification.js         # LINE通知機能
 ├── onEdit.js               # 編集履歴記録
-├── plugins.js              # 共通ユーティリティ関数
-├── resetTodo.js            # タスクリセット機能
+├── resetTasks.js           # タスクリセット機能
+├── utils.js                # 共通ユーティリティ関数
 ├── package.json            # Node.js依存関係
 └── README.md               # このファイル
 ```
@@ -98,9 +98,9 @@ administration-table/
 ### 2. LINE通知 (`notification.js`)
 
 - 毎週月曜日7-8時に未完了タスクを通知
-- 進捗率100％未満のタスクを抽出してLINEに送信
+- 進捗率100％未満のタスクを抽出してLINE Messaging APIで送信
 
-### 3. タスクリセット (`resetTodo.js`)
+### 3. タスクリセット (`resetTasks.js`)
 
 - 月次タスクの進捗を「０％」にリセット
 - 確認ダイアログ付き
@@ -116,7 +116,7 @@ administration-table/
 
 以下のトリガーをGoogle Apps Scriptで設定してください：
 
-1. **週次通知**: `alert_Pending_Tasks`関数
+1. **週次通知**: `notificationUncompletedTasks`関数
    - 実行頻度: 週次
    - 曜日: 月曜日
    - 時間: 7:00-8:00
@@ -129,9 +129,3 @@ administration-table/
 - シート名: 「やることリスト（毎月）」
 - 必須列: 「内容」「進捗」
 - 進捗列の値: 0-1の数値（0=0%, 1=100%）
-
-## 🔒 セキュリティ
-
-- LINE Notifyトークンは環境変数またはPropertiesServiceで管理
-- `.clasprc.json`は`.gitignore`に含まれています
-- 機密情報はコードに直接記述しないでください
