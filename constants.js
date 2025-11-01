@@ -5,7 +5,6 @@
 // シート名
 const SHEET_NAMES = {
   MONTHLY_TASK_LIST: "やることリスト（毎月）",
-  TEMPLATE: "テンプレート"
 };
 
 // 列名
